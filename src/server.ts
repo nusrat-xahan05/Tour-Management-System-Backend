@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
@@ -22,3 +23,36 @@ const startServer = async () => {
 (async() => {
     await startServer();
 })()
+
+process.on("unhandledRejection", (err) => {
+    console.log("Unhandled Rejection Detected... Server Shutting Down. ", err);
+
+    if (server) {
+        server.close(() => {
+            process.exit(1);
+        });
+    }
+    process.exit(1);
+})
+
+process.on("uncaughtException", (err) => {
+    console.log("Uncaught Exception Detected... Server Shutting Down. ", err);
+
+    if (server) {
+        server.close(() => {
+            process.exit(1);
+        });
+    }
+    process.exit(1);
+})
+
+process.on("SIGTERM", () => {
+    console.log("SIGTERM Signal Received... Server Shutting Down. ");
+
+    if (server) {
+        server.close(() => {
+            process.exit(1);
+        });
+    }
+    process.exit(1);
+})
