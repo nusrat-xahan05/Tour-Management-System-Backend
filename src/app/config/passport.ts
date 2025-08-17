@@ -4,9 +4,9 @@ import passport from "passport";
 import { Strategy as GoogleStrategy, Profile, VerifyCallback } from "passport-google-oauth20";
 import { envVars } from "./env";
 import { User } from "../modules/user/user.model";
-import { Role } from "../modules/user/user.interface";
+import { IsActive, Role } from "../modules/user/user.interface";
 import { Strategy as LocalStrategy } from "passport-local";
-import bcryptjs from "bcryptjs"
+import bcryptjs from "bcryptjs";
 
 
 passport.use(
@@ -17,21 +17,33 @@ passport.use(
         try {
             const isUserExist = await User.findOne({ email })
             if (!isUserExist) {
-                return done(null, false, {message: "User Email Does Not Exist"});
+                return done(null, false, { message: "User Email Does Not Exist" });
+            }
+
+            if (!isUserExist.isVerified) {
+                return done(null, false, { message: 'User Is Not Verified' });
+            }
+
+            if (isUserExist.isActive === IsActive.INACTIVE || isUserExist.isActive === IsActive.BLOCKED) {
+                return done(null, false, { message: `User Is ${isUserExist.isActive}` });
+            }
+
+            if (isUserExist.isDeleted) {
+                return done(null, false, { message: 'User Is Deleted' });
             }
 
             const isGoogleAuthenticated = isUserExist.auths.some(providerObjects => providerObjects.provider == 'Google')
-            if(isGoogleAuthenticated && !isUserExist.password){
-                return done(null, false, {message: "You've authenticated through Google. So, if you want to login with email & password - at first login with google and set a password."});
+            if (isGoogleAuthenticated && !isUserExist.password) {
+                return done(null, false, { message: "You've authenticated through Google. So, if you want to login with email & password - at first login with google and set a password." });
             }
 
             const isPasswordMatched = await bcryptjs.compare(password as string, isUserExist.password as string);
             if (!isPasswordMatched) {
-                return done(null, false, {message: "Incorrect Password"});
+                return done(null, false, { message: "Incorrect Password" });
             }
 
             return done(null, isUserExist);
-        } catch(err) {
+        } catch (err) {
             return done(err);
         }
     })
@@ -66,6 +78,17 @@ passport.use(
                         ]
                     })
                 }
+
+                if (user && !user.isVerified) {
+                    return done(null, false, { message: 'User Is Not Verified' });
+                }
+                if (user && (user.isActive === IsActive.INACTIVE || user.isActive === IsActive.BLOCKED)) {
+                    return done(null, false, { message: `User Is ${user.isActive}` });
+                }
+                if (user && user.isDeleted) {
+                    return done(null, false, { message: 'User Is Deleted' });
+                }
+
                 return done(null, user)
             } catch (err) {
                 console.log("Google Strategy Error", err);
