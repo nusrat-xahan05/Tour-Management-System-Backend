@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { UserRoutes } from "../modules/user/user.route";
 import { AuthRoutes } from "../modules/auth/auth.route";
+import { OtpRoutes } from "../modules/otp/otp.route";
 
 
 export const router = Router();
@@ -30,6 +31,10 @@ const moduleRoutes = [
     //     path: '/payment',
     //     route: PaymentRoutes
     // }
+    {
+        path: '/otp',
+        route: OtpRoutes
+    }
 ]
 
 moduleRoutes.forEach((route) => {
