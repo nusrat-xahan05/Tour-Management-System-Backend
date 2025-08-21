@@ -19,49 +19,50 @@ const createBooking = catchAsync(async (req: Request, res: Response, next: NextF
     })
 })
 
-const getAllBookings = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+// const getAllBookings = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    sendResponse(res, {
-        statusCode: httpStatus.CREATED,
-        success: true,
-        message: "User Updated Successfully",
-        data: user,
-    })
-})
+//     sendResponse(res, {
+//         statusCode: httpStatus.CREATED,
+//         success: true,
+//         message: "User Updated Successfully",
+//         data: user,
+//     })
+// })
 
-const getUserBookings = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+// const getUserBookings = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    sendResponse(res, {
-        statusCode: httpStatus.CREATED,
-        success: true,
-        message: "User Updated Successfully",
-        data: user,
-    })
-})
+//     sendResponse(res, {
+//         statusCode: httpStatus.CREATED,
+//         success: true,
+//         message: "User Updated Successfully",
+//         data: user,
+//     })
+// })
 
-const getSingleBooking = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+// const getSingleBooking = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "User Retrieved Successfully",
-        data: result.data,
-        meta: result.meta
-    })
-})
+//     sendResponse(res, {
+//         statusCode: httpStatus.OK,
+//         success: true,
+//         message: "User Retrieved Successfully",
+//         data: result.data,
+//         meta: result.meta
+//     })
+// })
 
-const updateBookingStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+// const updateBookingStatus = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
 
-    sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "User Retrieved Successfully",
-        data: result.data,
-        meta: result.meta
-    })
-})
+//     sendResponse(res, {
+//         statusCode: httpStatus.OK,
+//         success: true,
+//         message: "User Retrieved Successfully",
+//         data: result.data,
+//         meta: result.meta
+//     })
+// })
 
 
 export const BookingControllers = {
-    createBooking, getAllBookings, getUserBookings, getSingleBooking, updateBookingStatus
+    createBooking, 
+    // getAllBookings, getUserBookings, getSingleBooking, updateBookingStatus
 }

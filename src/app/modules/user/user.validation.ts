@@ -44,13 +44,6 @@ export const updateUserZodSchema = z.object({
         .min(2, { message: "Name Too Short" })
         .max(50, { message: "Name Too Long" })
         .optional(),
-    password: z
-        .string({ error: "Password Must Be String" })
-        .min(8, { message: "Password Must Be At Least 8 Characters Long" })
-        .regex(/^(?=.*[A-Z])/, { message: "Password Must Contain At Least 1 Uppercase Letter" })
-        .regex(/^(?=.*[!@#$%^&*])/, { message: "Password Must Contain At Least 1 Special Character" })
-        .regex(/^(?=.*\d)/, { message: "Password Must Contain At Least 1 Number" })
-        .optional(),
     phone: z
         .string({ error: "Phone Number Must Be String" })
         .regex(/^(?:\+8801\d{9}|01\d{9})$/, { message: "Phone Number Must Be Valid For Bangladesh. Formal: +8801XXXXXXXXX OR 01XXXXXXXXX" })

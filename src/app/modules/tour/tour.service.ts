@@ -1,68 +1,19 @@
-import { tourSearchableFields } from "./tour.constant";
+import { deleteImageFromCLoudinary } from "../../config/cloudinary.config";
+import { QueryBuilder } from "../../utils/queryBuilder";
+import { tourSearchableFields, tourTypeSearchableFields } from "./tour.constant";
 import { ITour, ITourType } from "./tour.interface";
 import { Tour, TourType } from "./tour.model";
-import { QueryBuilder } from "../../utils/queryBuilder";
 
-
-/* --------------------- TOUR SERVICES ---------------------- */
 const createTour = async (payload: ITour) => {
     const existingTour = await Tour.findOne({ title: payload.title });
     if (existingTour) {
         throw new Error("A tour with this title already exists.");
     }
 
-    // HANDLED THIS OPERATION USING 'PRE' HOOK
-    // const baseSlug = payload.title.toLowerCase().split(" ").join("-")
-    // let slug = `${baseSlug}`
-
-    // let counter = 0;
-    // while (await Tour.exists({ slug })) {
-    //     slug = `${slug}-${counter++}` // dhaka-division-2
-    // }
-
-    // payload.slug = slug;
     const tour = await Tour.create(payload)
     return tour;
 };
 
-// WITHOUT ORGANIZATION
-// const getAllTours = async (query: Record<string, string>) => {
-//     const filter = query
-//     const searchTerm = query.searchTerm || "";
-//     const sort = query.sort || "-createdAt";
-//     const fields = query.fields?.split(",").join(" ") || "";
-//     const page = Number(query.page) || 1;
-//     const limit = Number(query.limit) || 10;
-//     const skip = (page - 1) * limit;
-
-//     for (const field of excludeField) {
-//         delete filter[field]
-//     }
-
-//     const searchQuery = {
-//         $or: tourSearchableFields.map(field => ({ [field]: { $regex: searchTerm, $options: "i" } }))
-//     }
-
-//     const filterQuery = Tour.find(filter)
-//     const tours = filterQuery.find(searchQuery)
-//     const allTours = await tours.sort(sort).select(fields).skip(skip).limit(limit)
-
-//     const totalTours = await Tour.countDocuments();
-//     const totalPage = Math.ceil(totalTours / limit);
-
-//     const meta = {
-//         page: page,
-//         limit: limit,
-//         total: totalTours,
-//         totalPage: totalPage,
-//     }
-//     return {
-//         data: allTours,
-//         meta: meta
-//     }
-// };
-
-// WITH ORGANIZATION USING 'BUILD-QUERY'
 const getAllTours = async (query: Record<string, string>) => {
     const queryBuilder = new QueryBuilder(Tour.find(), query)
 
@@ -84,25 +35,36 @@ const getAllTours = async (query: Record<string, string>) => {
     }
 };
 
+const getSingleTour = async (slug: string) => {
+    const tour = await Tour.findOne({ slug });
+    return {
+        data: tour,
+    }
+};
+
 const updateTour = async (id: string, payload: Partial<ITour>) => {
     const existingTour = await Tour.findById(id);
-
     if (!existingTour) {
         throw new Error("Tour not found.");
     }
+    if (payload.images && payload.images.length > 0 && existingTour.images && existingTour.images.length > 0) {
+        payload.images = [...payload.images, ...existingTour.images]
+    }
+    if (payload.deleteImages && payload.deleteImages.length > 0 && existingTour.images && existingTour.images.length > 0) {
+        const restDBImages = existingTour.images.filter(imageUrl => !payload.deleteImages?.includes(imageUrl))
 
-    // if (payload.title) {
-    //     const baseSlug = payload.title.toLowerCase().split(" ").join("-")
-    //     let slug = `${baseSlug}`
+        const updatedPayloadImages = (payload.images || [])
+            .filter(imageUrl => !payload.deleteImages?.includes(imageUrl))
+            .filter(imageUrl => !restDBImages.includes(imageUrl))
 
-    //     let counter = 0;
-    //     while (await Tour.exists({ slug })) {
-    //         slug = `${slug}-${counter++}` // dhaka-division-2
-    //     }
-    //     payload.slug = slug
-    // }
+        payload.images = [...restDBImages, ...updatedPayloadImages]
+    }
 
     const updatedTour = await Tour.findByIdAndUpdate(id, payload, { new: true });
+    if (payload.deleteImages && payload.deleteImages.length > 0 && existingTour.images && existingTour.images.length > 0) {
+        await Promise.all(payload.deleteImages.map(url => deleteImageFromCLoudinary(url)))
+    }
+
     return updatedTour;
 };
 
@@ -116,13 +78,36 @@ const createTourType = async (payload: ITourType) => {
     if (existingTourType) {
         throw new Error("Tour type already exists.");
     }
-    return await TourType.create({ name: payload });
+
+    return await TourType.create({ payload });
 };
 
+const getAllTourTypes = async (query: Record<string, string>) => {
+    const queryBuilder = new QueryBuilder(TourType.find(), query)
 
-/* ------------------ TOUR TYPE SERVICES -------------------- */
-const getAllTourTypes = async () => {
-    return await TourType.find();
+    const tourTypes = await queryBuilder
+        .search(tourTypeSearchableFields)
+        .filter()
+        .sort()
+        .fields()
+        .paginate()
+
+    const [data, meta] = await Promise.all([
+        tourTypes.build(),
+        queryBuilder.getMeta()
+    ])
+
+    return {
+        data,
+        meta
+    }
+};
+
+const getSingleTourType = async (id: string) => {
+    const tourType = await TourType.findById(id);
+    return {
+        data: tourType
+    };
 };
 
 const updateTourType = async (id: string, payload: ITourType) => {
@@ -136,7 +121,7 @@ const updateTourType = async (id: string, payload: ITourType) => {
 };
 
 const deleteTourType = async (id: string) => {
-    const existingTourType = await TourType.findById(id, { new: true });
+    const existingTourType = await TourType.findById(id);
     if (!existingTourType) {
         throw new Error("Tour type not found.");
     }
@@ -144,8 +129,15 @@ const deleteTourType = async (id: string) => {
     return await TourType.findByIdAndDelete(id);
 };
 
-
 export const TourService = {
-    createTourType, deleteTourType, updateTourType, getAllTourTypes,
-    createTour, getAllTours, updateTour, deleteTour,
+    createTour,
+    createTourType,
+    deleteTourType,
+    updateTourType,
+    getAllTourTypes,
+    getSingleTourType,
+    getSingleTour,
+    getAllTours,
+    updateTour,
+    deleteTour,
 };

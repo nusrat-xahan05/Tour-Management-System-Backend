@@ -6,10 +6,27 @@ import { handleZodError } from "../errorHelpers/handleZodError";
 import { handleCastError } from "../errorHelpers/handleCastError";
 import { handleDuplicateError } from "../errorHelpers/handleDuplicateError";
 import { TErrorSources } from "../interfaces/Error.types";
+import { deleteImageFromCLoudinary } from "../config/cloudinary.config";
 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-export const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+export const globalErrorHandler = async (err: any, req: Request, res: Response, next: NextFunction) => {
+    if (envVars.NODE_ENV === "Development") {
+        // eslint-disable-next-line no-console
+        console.log(err);
+    }
+    // eslint-disable-next-line no-console
+    console.log({ file: req.files });
+    if (req.file) {
+        await deleteImageFromCLoudinary(req.file.path)
+    }
+
+    if (req.files && Array.isArray(req.files) && req.files.length) {
+        const imageUrls = (req.files as Express.Multer.File[]).map(file => file.path)
+
+        await Promise.all(imageUrls.map(url => deleteImageFromCLoudinary(url)))
+    }
+
     let errorSources: TErrorSources[] = [];
     let statusCode = 500;
     let message = `Something Went Wrong!!`;
