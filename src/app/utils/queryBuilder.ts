@@ -10,7 +10,6 @@ export class QueryBuilder<T> {
         this.query = query;
     }
 
-
     filter(): this {
         const filter = { ...this.query }
 
@@ -20,7 +19,6 @@ export class QueryBuilder<T> {
         }
 
         this.modelQuery = this.modelQuery.find(filter) // Tour.find().find(filter)
-
         return this;
     }
 
@@ -38,25 +36,23 @@ export class QueryBuilder<T> {
         const sort = this.query.sort || "-createdAt";
 
         this.modelQuery = this.modelQuery.sort(sort)
-
         return this;
     }
+
     fields(): this {
 
         const fields = this.query.fields?.split(",").join(" ") || ""
 
         this.modelQuery = this.modelQuery.select(fields)
-
         return this;
     }
-    paginate(): this {
 
+    paginate(): this {
         const page = Number(this.query.page) || 1
         const limit = Number(this.query.limit) || 10
         const skip = (page - 1) * limit
 
         this.modelQuery = this.modelQuery.skip(skip).limit(limit)
-
         return this;
     }
 
