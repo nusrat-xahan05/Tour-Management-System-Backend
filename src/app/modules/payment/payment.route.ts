@@ -1,7 +1,4 @@
 import { Router } from "express";
-import { validateRequest } from "../../middlewears/validateRequest";
-import { checkAuth } from "../../middlewears/checkAuth";
-import { Role } from "../user/user.interface";
 import { PaymentControllers } from "./payment.controller";
 
 

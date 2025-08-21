@@ -79,7 +79,11 @@ const tourSchema = new Schema<ITour>({
         type: Schema.Types.ObjectId,
         ref: "TourType",
         required: true
-    }
+    },
+    deleteImages: {
+        type: [String],
+        default: []
+    },
 }, {
     timestamps: true
 })
