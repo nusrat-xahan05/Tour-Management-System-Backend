@@ -5,7 +5,7 @@ import { handleValidationError } from "../errorHelpers/handleValidationError";
 import { handleZodError } from "../errorHelpers/handleZodError";
 import { handleCastError } from "../errorHelpers/handleCastError";
 import { handleDuplicateError } from "../errorHelpers/handleDuplicateError";
-import { TErrorSources } from "../interfaces/Error.types";
+import { TErrorSources } from "../interfaces/error.types";
 import { deleteImageFromCLoudinary } from "../config/cloudinary.config";
 
 
